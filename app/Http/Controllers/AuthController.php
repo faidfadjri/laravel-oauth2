@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use PDO;
 
 class AuthController extends Controller
 {
@@ -34,34 +35,29 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required',
-            'password' => 'required'
-        ]);
+        if ($request->method() == "POST") {
+            if (auth()->guard()->attempt($request->only('email', 'password'))) {
+                return redirect()->intended();
+            }
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => 'Invalid Credentials'
-            ]);
+            throw new \Exception('There was some error while trying to log you in');
+        } else {
+            return view('login');
         }
-
-        $token = $user->createToken('Auth Token')->accessToken;
-
-        session(['access_token' => $token]);
-        session(['user_id' => $user->id]);
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user
-        ]);
     }
 
-    public function logout(Request $request)
+    public function me()
     {
-        $request->user()->token()->revoke();
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json([
+            'message' => 'getting user information, completed',
+            'account' => auth()->user()
+        ], 200);
+    }
+
+    public function logout()
+    {
+        auth()->logout();
+        return redirect()->to('login');
     }
 
     public function detail(Request $request)

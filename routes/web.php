@@ -22,7 +22,13 @@ Route::get('/', function () {
 Route::get('details', [AuthController::class, 'detail'])->middleware('auth:api');
 
 
+
+
+
+Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 Route::get('logout', [AuthController::class, 'logout']);
+
+
 
 Route::match(['GET', 'POST'], 'login', [AuthController::class, 'login'])->name('login');
 Route::match(['GET', 'POST'], 'register', [AuthController::class, 'register'])->name('register');
